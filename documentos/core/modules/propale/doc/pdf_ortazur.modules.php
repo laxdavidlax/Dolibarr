@@ -314,7 +314,7 @@ class pdf_ortazur extends ModelePDFPropales
 					$pdf->setPrintFooter(false);
 				}
 				//$pdf->SetFont(pdf_getPDFFont($outputlangs));
-				$pdf->SetFont{'courier'};
+				$pdf->SetFont('courier');
 				// Set path to the background PDF File
 				if (getDolGlobalString('MAIN_ADD_PDF_BACKGROUND')) {
 					$logodir = $conf->mycompany->dir_output;
