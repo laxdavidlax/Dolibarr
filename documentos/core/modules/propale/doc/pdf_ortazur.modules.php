@@ -1466,6 +1466,10 @@ class pdf_ortazur extends ModelePDFPropales
 
 		pdf_pagehead($pdf, $outputlangs, $this->page_hauteur);
 
+		// Agregar color de fondo
+		$pdf->SetFillColor(153, 198, 228); // Color gris claro
+		$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur - $this->marge_gauche - $this->marge_droite, 80, 'F'); // Rectángulo con color de fondo
+
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 
@@ -1628,7 +1632,7 @@ class pdf_ortazur extends ModelePDFPropales
 			}
 			$hautcadre = 40;
 
-			// Show sender frame
+			// Show sender frame ***Coualtar etiqueta de Emisor***
 			if (!getDolGlobalString('MAIN_PDF_NO_SENDER_FRAME')) {
 				$pdf->SetTextColor(0, 0, 0);
 				$pdf->SetFont('', '', $default_font_size - 2);
@@ -1640,7 +1644,7 @@ class pdf_ortazur extends ModelePDFPropales
 				$pdf->SetTextColor(0, 0, 60);
 			}
 
-			// Show company name
+			// Show company name ***ORT Computadores S.A.S***
 			if (!getDolGlobalString('MAIN_PDF_HIDE_SENDER_NAME')) {
 				$pdf->SetXY($posx + 2, $posy + 3);
 				$pdf->SetFont('', 'B', $default_font_size);
@@ -1648,7 +1652,7 @@ class pdf_ortazur extends ModelePDFPropales
 				$posy = $pdf->getY();
 			}
 
-			// Show sender information
+			// Show sender information ***Oculta toda la información bajo nombre de ORT Computadores S.A.S***
 			$pdf->SetXY($posx + 2, $posy);
 			$pdf->SetFont('', '', $default_font_size - 1);
 			$pdf->MultiCell(80, 4, $carac_emetteur, 0, $ltrdirection);
