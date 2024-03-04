@@ -1467,8 +1467,8 @@ class pdf_ortazur extends ModelePDFPropales
 		pdf_pagehead($pdf, $outputlangs, $this->page_hauteur);
 
 		// Agregar color de fondo
-		$pdf->SetFillColor(153, 198, 228); // Color gris claro
-		$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur - $this->marge_gauche - $this->marge_droite, 80, 'F'); // Rectángulo con color de fondo
+		$pdf->SetFillColor(0, 113, 188); // Color gris claro
+		$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur - $this->marge_gauche - $this->marge_droite, 85, 'F'); // Rectángulo con color de fondo
 
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->SetFont('', 'B', $default_font_size + 3);
@@ -1480,32 +1480,50 @@ class pdf_ortazur extends ModelePDFPropales
 
 		$pdf->SetXY($this->marge_gauche, $posy);
 
-		// Logo
+		// Logo oculto para no usar el logo predeterminado del sistema 
+		//if (!getDolGlobalInt('PDF_DISABLE_MYCOMPANY_LOGO')) {
+		//	if ($this->emetteur->logo) {
+		//		$logodir = $conf->mycompany->dir_output;
+		//		if (!empty($conf->mycompany->multidir_output[$object->entity])) {
+		//			$logodir = $conf->mycompany->multidir_output[$object->entity];
+		//		}
+		//		if (!getDolGlobalInt('MAIN_PDF_USE_LARGE_LOGO')) {
+		//			$logo = $logodir.'/logos/thumbs/'.$this->emetteur->logo_small;
+		//		} else {
+		//			$logo = $logodir.'/logos/'.$this->emetteur->logo;
+		//		}
+		//		if (is_readable($logo)) {
+		//			$height = pdf_getHeightForLogo($logo);
+		//			$pdf->Image($logo, $this->marge_gauche, $posy, 0, $height); // width=0 (auto)
+		//		} else {
+		//			$pdf->SetTextColor(200, 0, 0);
+		//			$pdf->SetFont('', 'B', $default_font_size - 2);
+		//			$pdf->MultiCell(100, 3, $outputlangs->transnoentities("ErrorLogoFileNotFound", $logo), 0, 'L');
+		//			$pdf->MultiCell(100, 3, $outputlangs->transnoentities("ErrorGoToGlobalSetup"), 0, 'L');
+		//		}
+		//	} else {
+		//		$text = $this->emetteur->name;
+		//		$pdf->MultiCell(100, 4, $outputlangs->convToOutputCharset($text), 0, $ltrdirection);
+		//	}
+		//}
+
+		// Logo modificado por logo de color blacon para que resalte en el fondo azul
 		if (!getDolGlobalInt('PDF_DISABLE_MYCOMPANY_LOGO')) {
-			if ($this->emetteur->logo) {
-				$logodir = $conf->mycompany->dir_output;
-				if (!empty($conf->mycompany->multidir_output[$object->entity])) {
-					$logodir = $conf->mycompany->multidir_output[$object->entity];
-				}
-				if (!getDolGlobalInt('MAIN_PDF_USE_LARGE_LOGO')) {
-					$logo = $logodir.'/logos/thumbs/'.$this->emetteur->logo_small;
-				} else {
-					$logo = $logodir.'/logos/'.$this->emetteur->logo;
-				}
-				if (is_readable($logo)) {
-					$height = pdf_getHeightForLogo($logo);
-					$pdf->Image($logo, $this->marge_gauche, $posy, 0, $height); // width=0 (auto)
-				} else {
-					$pdf->SetTextColor(200, 0, 0);
-					$pdf->SetFont('', 'B', $default_font_size - 2);
-					$pdf->MultiCell(100, 3, $outputlangs->transnoentities("ErrorLogoFileNotFound", $logo), 0, 'L');
-					$pdf->MultiCell(100, 3, $outputlangs->transnoentities("ErrorGoToGlobalSetup"), 0, 'L');
-				}
+			$fixed_logo_path = '../../custom/documentos/img/Logo-ORT-Computadores-blanco.png'; // Reemplaza esta ruta con la ruta de tu imagen fija
+			if (is_readable($fixed_logo_path)) {
+				$height = pdf_getHeightForLogo($fixed_logo_path);
+				$pdf->Image($fixed_logo_path, $this->marge_gauche, $posy, 0, $height); // width=0 (auto)
 			} else {
-				$text = $this->emetteur->name;
-				$pdf->MultiCell(100, 4, $outputlangs->convToOutputCharset($text), 0, $ltrdirection);
+				$pdf->SetTextColor(200, 0, 0);
+				$pdf->SetFont('', 'B', $default_font_size - 2);
+				$pdf->MultiCell(100, 3, $outputlangs->transnoentities("ErrorLogoFileNotFound", $fixed_logo_path), 0, 'L');
+				$pdf->MultiCell(100, 3, $outputlangs->transnoentities("ErrorGoToGlobalSetup"), 0, 'L');
 			}
+		} else {
+			$text = $this->emetteur->name;
+			$pdf->MultiCell(100, 4, $outputlangs->convToOutputCharset($text), 0, $ltrdirection);
 		}
+		// Logo modificado
 
 		$pdf->SetFont('', 'B', $default_font_size + 3);
 		$pdf->SetXY($posx, $posy);
