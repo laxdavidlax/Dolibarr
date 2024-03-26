@@ -130,18 +130,18 @@ class pdf_ortazur extends ModelePDFPropales
 		// Define position of columns
 		$this->posxdesc = $this->marge_gauche + 1;
 		if (getDolGlobalInt('PRODUCT_USE_UNITS')) {
-			$this->posxtva = 101;
-			$this->posxup = 118;
-			$this->posxqty = 135;
-			$this->posxunit = 151;
+			$this->posxtva = 136; // 101
+			$this->posxup = 143; // 118
+			$this->posxqty = 150; // 135
+			//$this->posxunit = 160; // 151
 		} else {
-			$this->posxtva = 106;
-			$this->posxup = 122;
-			$this->posxqty = 145;
-			$this->posxunit = 162;
+			$this->posxtva = 136; // 106
+			$this->posxup = 144; // 122
+			$this->posxqty = 168; // 145
+			$this->posxunit = 179; // 162
 		}
-		$this->posxdiscount = 162;
-		$this->postotalht = 174;
+		$this->posxdiscount = 180; // 162
+		$this->postotalht = 188; // 174
 		if (getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') || getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN')) {
 			$this->posxtva = $this->posxup;
 		}
@@ -313,8 +313,8 @@ class pdf_ortazur extends ModelePDFPropales
 					$pdf->setPrintHeader(false);
 					$pdf->setPrintFooter(false);
 				}
-				//$pdf->SetFont(pdf_getPDFFont($outputlangs));
-				$pdf->SetFont('courier');
+				$pdf->SetFont(pdf_getPDFFont($outputlangs));
+				// $pdf->SetFont('courier'); // cambiar la fuente de todo el documento
 				// Set path to the background PDF File
 				if (getDolGlobalString('MAIN_ADD_PDF_BACKGROUND')) {
 					$logodir = $conf->mycompany->dir_output;
@@ -445,14 +445,18 @@ class pdf_ortazur extends ModelePDFPropales
 					$notetoshow = make_substitutions($notetoshow, $substitutionarray, $outputlangs);
 					$notetoshow = convertBackOfficeMediasLinksToPublicLinks($notetoshow);
 
-					$pdf->SetFont('', '', $default_font_size - 1);
-					$pdf->writeHTMLCell(190, 3, $this->posxdesc - 1, $tab_top - 1, dol_htmlentitiesbr($notetoshow), 0, 1);
+					// Rect takes a length in 3rd parameter // rectangulo del texto de las notas
+					$pdf->SetDrawColor(255, 87, 0); // color del borde del rectangulo
+					$pdf->SetFillColor(255, 87, 0); // Color naranja complemetnario logo
+					$pdf->Rect($this->marge_gauche, $tab_top - 5, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $height_note + 7, 'F');
+
+					$pdf->SetFont('', '', $default_font_size + 1);
+					$pdf->SetTextColor(255, 255, 255); // Color blanco
+					$pdf->writeHTMLCell(190, 3, $this->posxdesc + 2, $tab_top - 4, dol_htmlentitiesbr($notetoshow), 0, 1);
 					$nexY = $pdf->GetY();
 					$height_note = $nexY - $tab_top;
 
-					// Rect takes a length in 3rd parameter
-					$pdf->SetDrawColor(192, 192, 192);
-					$pdf->Rect($this->marge_gauche, $tab_top - 1, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $height_note + 1);
+
 
 					$tab_top = $nexY + 6;
 				}
@@ -509,8 +513,8 @@ class pdf_ortazur extends ModelePDFPropales
 						$posYAfterImage = $curY + $imglinesize['height'];
 					}
 
-					// Description of product line
-					$curX = $this->posxdesc - 1;
+					// Description of product line // Descripción de la línea de productos
+					$curX = $this->posxdesc + 2; // Margen de descripción linea de prodcuto
 
 					$pdf->startTransaction();
 					pdf_writelinedesc($pdf, $object, $i, $outputlangs, $this->posxpicture - $curX, 3, $curX, $curY, $hideref, $hidedesc);
@@ -566,31 +570,31 @@ class pdf_ortazur extends ModelePDFPropales
 
 					$pdf->SetFont('', '', $default_font_size - 1); // On repositionne la police par defaut
 
-					// VAT Rate
+					// Tipo de IVA
 					if (!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') && !getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN')) {
 						$vat_rate = pdf_getlinevatrate($object, $i, $outputlangs, $hidedetails);
-						$pdf->SetXY($this->posxtva - 5, $curY);
+						$pdf->SetXY($this->posxtva - 5, $curY); // desplaza %impuesto valores + acerca a precio unitario
 						$pdf->MultiCell($this->posxup - $this->posxtva + 4, 3, $vat_rate, 0, 'R');
 					}
 
-					// Unit price before discount
+					// Precio unitario antes del descuento
 					$up_excl_tax = pdf_getlineupexcltax($object, $i, $outputlangs, $hidedetails);
 					$pdf->SetXY($this->posxup, $curY);
 					$pdf->MultiCell($this->posxqty - $this->posxup - 0.8, 3, $up_excl_tax, 0, 'R', 0);
 
-					// Quantity
+					// Cantidad
 					$qty = pdf_getlineqty($object, $i, $outputlangs, $hidedetails);
 					$pdf->SetXY($this->posxqty, $curY);
 					$pdf->MultiCell($this->posxunit - $this->posxqty - 0.8, 4, $qty, 0, 'R'); // Enough for 6 chars
 
-					// Unit
-					if (getDolGlobalInt('PRODUCT_USE_UNITS')) {
-						$unit = pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
-						$pdf->SetXY($this->posxunit, $curY);
-						$pdf->MultiCell($this->posxdiscount - $this->posxunit - 0.8, 4, $unit, 0, 'L');
-					}
+					// Unidad
+					//if (getDolGlobalInt('PRODUCT_USE_UNITS')) {
+					//	$unit = pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
+					//	$pdf->SetXY($this->posxunit, $curY);
+					//	$pdf->MultiCell($this->posxdiscount - $this->posxunit - 0.8, 4, $unit, 0, 'R');
+					//}
 
-					// Discount on line
+					// Descuento en línea
 					$pdf->SetXY($this->posxdiscount, $curY);
 					if ($object->lines[$i]->remise_percent) {
 						$pdf->SetXY($this->posxdiscount - 2, $curY);
@@ -598,12 +602,12 @@ class pdf_ortazur extends ModelePDFPropales
 						$pdf->MultiCell($this->postotalht - $this->posxdiscount + 2, 3, $remise_percent, 0, 'R');
 					}
 
-					// Total HT line
+					// Línea HT total
 					$total_excl_tax = pdf_getlinetotalexcltax($object, $i, $outputlangs, $hidedetails);
-					$pdf->SetXY($this->postotalht, $curY);
+					$pdf->SetXY($this->postotalht - 3, $curY);
 					$pdf->MultiCell($this->page_largeur - $this->marge_droite - $this->postotalht, 3, $total_excl_tax, 0, 'R', 0);
 
-					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
+					// Recopilación de totales por valor de IVA en $this->tva["rate"]=total_tva
 					if (isModEnabled("multicurrency") && $object->multicurrency_tx != 1) {
 						$tvaligne = $object->lines[$i]->multicurrency_total_tva;
 					} else {
@@ -638,7 +642,7 @@ class pdf_ortazur extends ModelePDFPropales
 						$localtax2_type = isset($localtaxtmp_array[2]) ? $localtaxtmp_array[2] : '';
 					}
 
-					// retrieve global local tax
+					// recuperar el impuesto local global
 					if ($localtax1_type && $localtax1ligne != 0) {
 						if (empty($this->localtax1[$localtax1_type][$localtax1_rate])) {
 							$this->localtax1[$localtax1_type][$localtax1_rate] = $localtax1ligne;
@@ -673,18 +677,33 @@ class pdf_ortazur extends ModelePDFPropales
 						$nexY = $posYAfterImage;
 					}
 
-					// Add line
+					// Add line // lineas punteadas y color naranja de separación produstos
+					//if (getDolGlobalString('MAIN_PDF_DASH_BETWEEN_LINES') && $i < ($nblines - 1)) {
+					//	$pdf->setPage($pageposafter);
+					//	$pdf->SetLineStyle(array('dash'=>'1,1', 'color'=>array(255, 87, 0)));
+					//	//$pdf->SetDrawColor(190,190,200);
+					//	$pdf->line($this->marge_gauche, $nexY + 1, $this->page_largeur - $this->marge_droite, $nexY + 1);
+					//	$pdf->SetLineStyle(array('dash'=>0));
+					//}
+
+					// Add line // lineas punteadas y color naranja de separación produstos
 					if (getDolGlobalString('MAIN_PDF_DASH_BETWEEN_LINES') && $i < ($nblines - 1)) {
 						$pdf->setPage($pageposafter);
-						$pdf->SetLineStyle(array('dash'=>'1,1', 'color'=>array(80, 80, 80)));
-						//$pdf->SetDrawColor(190,190,200);
+					
+						// Establecer el grosor de línea y el color naranja
+						$pdf->SetLineWidth(0.2); // Grosor de línea
+						$pdf->SetDrawColor(255, 87, 0); // Color naranja
+					
+						// Establecer el estilo de línea punteada
+						$pdf->SetLineStyle(array('dash'=>'1,1'));
+					
+						// Dibujar la línea punteada
 						$pdf->line($this->marge_gauche, $nexY + 1, $this->page_largeur - $this->marge_droite, $nexY + 1);
-						$pdf->SetLineStyle(array('dash'=>0));
 					}
 
 					$nexY += 2; // Add space between lines
 
-					// Detect if some page were added automatically and output _tableau for past pages
+					// Detectar si alguna página se agregó automáticamente y generar _tableau para páginas anteriores
 					while ($pagenb < $pageposafter) {
 						$pdf->setPage($pagenb);
 						if ($pagenb == 1) {
@@ -722,7 +741,7 @@ class pdf_ortazur extends ModelePDFPropales
 					}
 				}
 
-				// Show square
+				// Mostrar plaza
 				if ($pagenb == 1) {
 					$this->_tableau($pdf, $tab_top, $this->page_hauteur - $tab_top - $heightforinfotot - $heightforfreetext - $heightforsignature - $heightforfooter, 0, $outputlangs, 0, 0, $object->multicurrency_code);
 					$bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforfreetext - $heightforsignature - $heightforfooter + 1;
@@ -731,13 +750,13 @@ class pdf_ortazur extends ModelePDFPropales
 					$bottomlasttab = $this->page_hauteur - $heightforinfotot - $heightforfreetext - $heightforsignature - $heightforfooter + 1;
 				}
 
-				// Affiche zone infos
+				// Visualización del área de información
 				$posy = $this->_tableau_info($pdf, $object, $bottomlasttab, $outputlangs);
 
-				// Affiche zone totaux
+				// Mostrar área de totales
 				$posy = $this->_tableau_tot($pdf, $object, 0, $bottomlasttab, $outputlangs);
 
-				// Affiche zone versements
+				// Visualización del área de pago
 				/*
 				if ($deja_regle || $amount_credit_notes_included || $amount_deposits_included)
 				{
@@ -745,18 +764,18 @@ class pdf_ortazur extends ModelePDFPropales
 				}
 				*/
 
-				// Customer signature area
+				// Área de firma del cliente
 				if (!getDolGlobalString('PROPAL_DISABLE_SIGNATURE')) {
 					$posy = $this->_signature_area($pdf, $object, $posy, $outputlangs);
 				}
 
-				// Pied de page
+				// Pie de página
 				$this->_pagefoot($pdf, $object, $outputlangs);
 				if (method_exists($pdf, 'AliasNbPages')) {
 					$pdf->AliasNbPages();
 				}
 
-				//If propal merge product PDF is active
+				//Si el PDF del producto de fusión propal está activo
 				if (getDolGlobalString('PRODUIT_PDF_MERGE_PROPAL')) {
 					require_once DOL_DOCUMENT_ROOT.'/product/class/propalmergepdfproduct.class.php';
 
@@ -783,7 +802,7 @@ class pdf_ortazur extends ModelePDFPropales
 								$entity_product_file = $conf->entity;
 							}
 
-							// If PDF is selected and file is not empty
+							// Si se selecciona PDF y el archivo no está vacío
 							if (count($filetomerge->lines) > 0) {
 								foreach ($filetomerge->lines as $linefile) {
 									if (!empty($linefile->id) && !empty($linefile->file_name)) {
@@ -883,6 +902,9 @@ class pdf_ortazur extends ModelePDFPropales
 	 */
 	protected function _tableau_info(&$pdf, $object, $posy, $outputlangs)
 	{
+		// Increase $posy by 10 to generate a top margin of 10
+		$posy += 1; // margen superior de información general
+
 		// phpcs:enable
 		global $conf, $mysoc;
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
@@ -900,19 +922,23 @@ class pdf_ortazur extends ModelePDFPropales
 			$posy = $pdf->GetY() + 4;
 		}
 
-		$posxval = 52;
+		$posxval = 40;
 		if (getDolGlobalString('MAIN_PDF_DELIVERY_DATE_TEXT')) {
 			$displaydate = "daytext";
 		} else {
 			$displaydate = "day";
 		}
 
-		// Show shipping date
+		// Definir el nuevo valor del margen lateral
+		$this->marge_gauche = 3;
+
+		// Mostrar fecha de envío
 		if (!empty($object->delivery_date)) {
 			$outputlangs->load("sendings");
-			$pdf->SetFont('', 'B', $default_font_size - $diffsizetitle);
+			$pdf->SetFont('', '', $default_font_size - $diffsizetitle);
 			$pdf->SetXY($this->marge_gauche, $posy);
 			$titre = $outputlangs->transnoentities("DateDeliveryPlanned").':';
+			$pdf->SetTextColor(0, 113, 188); // Color Logo ORT
 			$pdf->MultiCell(80, 4, $titre, 0, 'L');
 			$pdf->SetFont('', '', $default_font_size -$diffsizetitle);
 			$pdf->SetXY($posxval, $posy);
@@ -921,7 +947,7 @@ class pdf_ortazur extends ModelePDFPropales
 
 			$posy = $pdf->GetY() + 1;
 		} elseif ($object->availability_code || $object->availability) {    // Show availability conditions
-			$pdf->SetFont('', 'B', $default_font_size - $diffsizetitle);
+			$pdf->SetFont('', '', $default_font_size - $diffsizetitle);
 			$pdf->SetXY($this->marge_gauche, $posy);
 			$titre = $outputlangs->transnoentities("AvailabilityPeriod").':';
 			$pdf->MultiCell(80, 4, $titre, 0, 'L');
@@ -935,7 +961,7 @@ class pdf_ortazur extends ModelePDFPropales
 			$posy = $pdf->GetY() + 1;
 		}
 
-		// Show delivery mode
+		// Mostrar modo de entrega
 		if (!getDolGlobalString('PROPOSAL_PDF_HIDE_DELIVERYMODE') && $object->shipping_method_id > 0) {
 			$outputlangs->load("sendings");
 
@@ -946,9 +972,10 @@ class pdf_ortazur extends ModelePDFPropales
 			$shipping_method_code = dol_getIdFromCode($this->db, $shipping_method_id, 'c_shipment_mode', 'rowid', 'code');
 			$shipping_method_label = dol_getIdFromCode($this->db, $shipping_method_id, 'c_shipment_mode', 'rowid', 'libelle');
 
-			$pdf->SetFont('', 'B', $default_font_size - $diffsizetitle);
+			$pdf->SetFont('', '', $default_font_size - $diffsizetitle);
 			$pdf->SetXY($this->marge_gauche, $posy);
 			$titre = $outputlangs->transnoentities("SendingMethod").':';
+			$pdf->SetTextColor(0, 113, 188); // Color Logo ORT
 			$pdf->MultiCell(43, 4, $titre, 0, 'L');
 
 			$pdf->SetFont('', '', $default_font_size - $diffsizetitle);
@@ -960,11 +987,12 @@ class pdf_ortazur extends ModelePDFPropales
 			$posy = $pdf->GetY() + 1;
 		}
 
-		// Show payments conditions
+		// Mostrar condiciones de pago
 		if (!getDolGlobalString('PROPOSAL_PDF_HIDE_PAYMENTTERM') && $object->cond_reglement_code) {
-			$pdf->SetFont('', 'B', $default_font_size - $diffsizetitle);
+			$pdf->SetFont('', '', $default_font_size - $diffsizetitle);
 			$pdf->SetXY($this->marge_gauche, $posy);
 			$titre = $outputlangs->transnoentities("PaymentConditions").':';
+			$pdf->SetTextColor(0, 113, 188); // Color Logo ORT
 			$pdf->MultiCell(43, 4, $titre, 0, 'L');
 
 			$pdf->SetFont('', '', $default_font_size - $diffsizetitle);
@@ -979,8 +1007,8 @@ class pdf_ortazur extends ModelePDFPropales
 			$posy = $pdf->GetY() + 3;
 		}
 
-		if (!getDolGlobalString('PROPOSAL_PDF_HIDE_PAYMENTMODE')) {
-			// Show payment mode
+		//if (!getDolGlobalString('PROPOSAL_PDF_HIDE_PAYMENTMODE')) {
+			// Mostrar modo de pago
 			if ($object->mode_reglement_code
 			&& $object->mode_reglement_code != 'CHQ'
 			&& $object->mode_reglement_code != 'VIR') {
@@ -996,7 +1024,7 @@ class pdf_ortazur extends ModelePDFPropales
 				$posy = $pdf->GetY() + 2;
 			}
 
-			// Show payment mode CHQ
+			// Mostrar modo de pago CHQ
 			if (empty($object->mode_reglement_code) || $object->mode_reglement_code == 'CHQ') {
 				// Si mode reglement non force ou si force a CHQ
 				if (getDolGlobalInt('FACTURE_CHQ_NUMBER')) {
@@ -1050,7 +1078,26 @@ class pdf_ortazur extends ModelePDFPropales
 					$posy += 2;
 				}
 			}
-		}
+		//}
+
+		// Move to the bottom of the section
+		$posy += 25; // Adjust as needed to leave space between the previous content and the new text lines
+
+		// Add the additional text lines
+		$pdf->SetFont('', '', 10);
+		$pdf->SetXY($this->marge_gauche, $posy);
+		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
+		$pdf->MultiCell(0, 5, "* Cuenta de Ahorros BANCOLOMBIA No 118 – 250389 – 75 a nombre de ORT COMPUTADORES.\n* Descargar: RUT, certificación bancaria, cámara de comercio = https://docs.ortcomputadores.com.co/public.php ", 0, 'L');	
+
+
+		// Move to the bottom of the section
+		$posy += 10; // Adjust as needed to leave space between the previous content and the new text lines
+
+		// Add the additional text lines
+		$pdf->SetFont('', '', 10);
+		$pdf->SetXY($this->marge_gauche, $posy);
+		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
+		$pdf->MultiCell(0, 5, "* La facturación se realiza en pesos COP. Los presupuestos realizados en USD se liquidan según TRM del día de facturación.\n* Artículos para cambio o devolución deben retornarse en su estado original, no abiertos respetar sellos en las cajas / empaques.", 0, 'L');	
 
 		return $posy;
 	}
@@ -1058,7 +1105,7 @@ class pdf_ortazur extends ModelePDFPropales
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
 	/**
-	 *	Show total to pay
+	 *	Mostrar total a pagar
 	 *
 	 *	@param	TCPDF		$pdf            Object PDF
 	 *	@param  Propal		$object         Object propal
@@ -1070,6 +1117,9 @@ class pdf_ortazur extends ModelePDFPropales
 	 */
 	protected function _tableau_tot(&$pdf, $object, $deja_regle, $posy, $outputlangs, $outputlangsbis = null)
 	{
+		// Increase $posy by 10 to generate a top margin of 10
+		$posy += 1; // margen superior de información general
+
 		// phpcs:enable
 		global $conf, $mysoc;
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
@@ -1092,6 +1142,7 @@ class pdf_ortazur extends ModelePDFPropales
 		// Total HT
 		$pdf->SetFillColor(255, 255, 255);
 		$pdf->SetXY($col1x, $tab2_top);
+		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
 		$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("TotalHT"), 0, 'L', 1);
 
 		$total_ht = ((isModEnabled("multicurrency") && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? $object->multicurrency_total_ht : $object->total_ht);
@@ -1327,7 +1378,7 @@ class pdf_ortazur extends ModelePDFPropales
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
-	 *   Show table for lines
+	 *   Mostrar tabla para líneas
 	 *
 	 *   @param		TCPDF		$pdf     		Object PDF
 	 *   @param		string		$tab_top		Top position of table
@@ -1343,7 +1394,7 @@ class pdf_ortazur extends ModelePDFPropales
 	{
 		global $conf;
 
-		// Force to disable hidetop and hidebottom
+		// Forzar la desactivación de hidetop y hidebottom
 		$hidebottom = 0;
 		if ($hidetop) {
 			$hidetop = -1;
@@ -1353,30 +1404,33 @@ class pdf_ortazur extends ModelePDFPropales
 		$default_font_size = pdf_getPDFFontSize($outputlangs);
 
 		// Amount in (at tab_top - 1)
-		$pdf->SetTextColor(0, 0, 0);
-		$pdf->SetFont('', '', $default_font_size - 2);
+		$pdf->SetTextColor(0, 113, 188);
+		$pdf->SetFont('', '', $default_font_size + 1);
 
-		if (empty($hidetop)) {
-			$titre = $outputlangs->transnoentities("AmountInCurrency", $outputlangs->transnoentitiesnoconv("Currency".$currency));
-			$pdf->SetXY($this->page_largeur - $this->marge_droite - ($pdf->GetStringWidth($titre) + 3), $tab_top - 4);
-			$pdf->MultiCell(($pdf->GetStringWidth($titre) + 3), 2, $titre);
+		// Oculta: Importes visualizados en Colombia Peso
+		//if (empty($hidetop)) {
+		//	$titre = $outputlangs->transnoentities("AmountInCurrency", $outputlangs->transnoentitiesnoconv("Currency".$currency));
+		//	$pdf->SetXY($this->page_largeur - $this->marge_droite - ($pdf->GetStringWidth($titre) + 3), $tab_top - 4);
+		//	$pdf->MultiCell(($pdf->GetStringWidth($titre) + 3), 2, $titre);
 
 			//$conf->global->MAIN_PDF_TITLE_BACKGROUND_COLOR='230,230,230';
-			if (getDolGlobalString('MAIN_PDF_TITLE_BACKGROUND_COLOR')) {
-				$pdf->Rect($this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_droite - $this->marge_gauche, 5, 'F', null, explode(',', getDolGlobalString('MAIN_PDF_TITLE_BACKGROUND_COLOR')));
-			}
-		}
+		//	if (getDolGlobalString('MAIN_PDF_TITLE_BACKGROUND_COLOR')) {
+		//		$pdf->Rect($this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_droite - $this->marge_gauche, 5, 'F', null, explode(',', getDolGlobalString('MAIN_PDF_TITLE_BACKGROUND_COLOR')));
+		//	}
+		//}
 
-		$pdf->SetDrawColor(128, 128, 128);
+		$pdf->SetDrawColor(255, 87, 0); // color naranja del borde de la tabla
+		$pdf->SetLineWidth(0.2); // Grosor de línea
+		$pdf->SetLineStyle(array('dash'=>'1,1'));
 		$pdf->SetFont('', '', $default_font_size - 1);
 
-		// Output Rect
+		// Output Rect // Salida recta 
 		$this->printRect($pdf, $this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $tab_height, $hidetop, $hidebottom); // Rect takes a length in 3rd parameter and 4th parameter
 
 		if (empty($hidetop)) {
 			$pdf->line($this->marge_gauche, $tab_top + 5, $this->page_largeur - $this->marge_droite, $tab_top + 5); // line takes a position y in 2nd parameter and 4th parameter
 
-			$pdf->SetXY($this->posxdesc - 1, $tab_top + 1);
+			$pdf->SetXY($this->posxdesc + 2, $tab_top + 1);
 			$pdf->MultiCell(108, 2, $outputlangs->transnoentities("Designation"), '', 'L');
 		}
 
@@ -1388,6 +1442,7 @@ class pdf_ortazur extends ModelePDFPropales
 			}
 		}
 
+		// muestra columna de IVA (tabla encabezado) antes linea continua
 		if (!getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT') && !getDolGlobalString('MAIN_GENERATE_DOCUMENTS_WITHOUT_VAT_COLUMN')) {
 			$pdf->line($this->posxtva - 1, $tab_top, $this->posxtva - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
@@ -1397,12 +1452,14 @@ class pdf_ortazur extends ModelePDFPropales
 			}
 		}
 
+		// muestra precio unitario (tabla encabezado)
 		$pdf->line($this->posxup - 1, $tab_top, $this->posxup - 1, $tab_top + $tab_height);
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->posxup - 1, $tab_top + 1);
 			$pdf->MultiCell($this->posxqty - $this->posxup - 1, 2, $outputlangs->transnoentities("PriceUHT"), '', 'C');
 		}
 
+		// muestra cantidad (tabla encabezado)
 		$pdf->line($this->posxqty - 1, $tab_top, $this->posxqty - 1, $tab_top + $tab_height);
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->posxqty - 1, $tab_top + 1);
@@ -1433,6 +1490,7 @@ class pdf_ortazur extends ModelePDFPropales
 		if ($this->atleastonediscount) {
 			$pdf->line($this->postotalht, $tab_top, $this->postotalht, $tab_top + $tab_height);
 		}
+		// muestra columna de Base imp. Total linea(tabla encabezado)
 		if (empty($hidetop)) {
 			$pdf->SetXY($this->postotalht - 1, $tab_top + 1);
 			$pdf->MultiCell(30, 2, $outputlangs->transnoentities("TotalHTShort"), '', 'C');
@@ -1441,7 +1499,7 @@ class pdf_ortazur extends ModelePDFPropales
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
 	/**
-	 *  Show top header of page.
+	 *  Mostrar el encabezado superior de la página.
 	 *
 	 *  @param	TCPDF		$pdf     		Object PDF
 	 *  @param  Propal		$object     	Object to show
@@ -1467,8 +1525,8 @@ class pdf_ortazur extends ModelePDFPropales
 		pdf_pagehead($pdf, $outputlangs, $this->page_hauteur);
 
 		// Agregar color de fondo
-		$pdf->SetFillColor(0, 113, 188); // Color gris claro
-		$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur - $this->marge_gauche - $this->marge_droite, 85, 'F'); // Rectángulo con color de fondo
+		$pdf->SetFillColor(0, 113, 188); // Color ORT Computadores
+		$pdf->Rect($this->marge_gauche, $this->marge_haute, $this->page_largeur - $this->marge_gauche - $this->marge_droite, 40, 'F'); // Rectángulo con color de fondo
 
 		$pdf->SetTextColor(0, 0, 60);
 		$pdf->SetFont('', 'B', $default_font_size + 3);
@@ -1511,8 +1569,9 @@ class pdf_ortazur extends ModelePDFPropales
 		if (!getDolGlobalInt('PDF_DISABLE_MYCOMPANY_LOGO')) {
 			$fixed_logo_path = '../../custom/documentos/img/Logo-ORT-Computadores-blanco.png'; // Reemplaza esta ruta con la ruta de tu imagen fija
 			if (is_readable($fixed_logo_path)) {
+
 				$height = pdf_getHeightForLogo($fixed_logo_path);
-				$pdf->Image($fixed_logo_path, $this->marge_gauche, $posy, 0, $height); // width=0 (auto)
+				$pdf->Image($fixed_logo_path, $this->marge_gauche + 3, $posy + 4, 0, $height); // width=0 (auto)
 			} else {
 				$pdf->SetTextColor(200, 0, 0);
 				$pdf->SetFont('', 'B', $default_font_size - 2);
@@ -1525,9 +1584,10 @@ class pdf_ortazur extends ModelePDFPropales
 		}
 		// Logo modificado
 
-		$pdf->SetFont('', 'B', $default_font_size + 3);
-		$pdf->SetXY($posx, $posy);
-		$pdf->SetTextColor(0, 0, 60);
+		// Presupuesto PR2402-0001 
+		$pdf->SetFont('', 'B', $default_font_size + 6);
+		$pdf->SetXY($posx - 3, $posy + 4); 
+		$pdf->SetTextColor(255, 255, 255);
 		$title = $outputlangs->transnoentities("PdfCommercialProposalTitle");
 		$title .= ' '.$outputlangs->convToOutputCharset($object->ref);
 		if ($object->statut == $object::STATUS_DRAFT) {
@@ -1546,7 +1606,7 @@ class pdf_ortazur extends ModelePDFPropales
 		*/
 
 		$posy += 3;
-		$pdf->SetFont('', '', $default_font_size - 2);
+		$pdf->SetFont('', '', $default_font_size - 3);
 
 		if ($object->ref_client) {
 			$posy += 4;
@@ -1555,26 +1615,26 @@ class pdf_ortazur extends ModelePDFPropales
 			$pdf->MultiCell(100, 3, $outputlangs->transnoentities("RefCustomer")." : ".$outputlangs->convToOutputCharset($object->ref_client), '', 'R');
 		}
 
-		if (getDolGlobalString('PDF_SHOW_PROJECT_TITLE')) {
-			$object->fetch_projet();
-			if (!empty($object->project->ref)) {
-				$posy += 3;
-				$pdf->SetXY($posx, $posy);
-				$pdf->SetTextColor(0, 0, 60);
-				$pdf->MultiCell($w, 3, $outputlangs->transnoentities("Project")." : ".(empty($object->project->title) ? '' : $object->project->title), '', 'R');
-			}
-		}
+		//if (getDolGlobalString('PDF_SHOW_PROJECT_TITLE')) {
+		//	$object->fetch_projet();
+		//	if (!empty($object->project->ref)) {
+		//		$posy += 3;
+		//		$pdf->SetXY($posx, $posy);
+		//		$pdf->SetTextColor(0, 0, 60);
+		//		$pdf->MultiCell($w, 3, $outputlangs->transnoentities("Project")." : ".(empty($object->project->title) ? '' : $object->project->title), '', 'R');
+		//	}
+		//}
 
-		if (getDolGlobalString('PDF_SHOW_PROJECT')) {
-			$object->fetch_projet();
-			if (!empty($object->project->ref)) {
-				$outputlangs->load("projects");
-				$posy += 3;
-				$pdf->SetXY($posx, $posy);
-				$pdf->SetTextColor(0, 0, 60);
-				$pdf->MultiCell($w, 3, $outputlangs->transnoentities("RefProject")." : ".(empty($object->project->ref) ? '' : $object->project->ref), '', 'R');
-			}
-		}
+		//if (getDolGlobalString('PDF_SHOW_PROJECT')) {
+		//	$object->fetch_projet();
+		//	if (!empty($object->project->ref)) {
+		//		$outputlangs->load("projects");
+		//		$posy += 3;
+		//		$pdf->SetXY($posx, $posy);
+		//		$pdf->SetTextColor(0, 0, 60);
+		//		$pdf->MultiCell($w, 3, $outputlangs->transnoentities("RefProject")." : ".(empty($object->project->ref) ? '' : $object->project->ref), '', 'R');
+		//	}
+		//}
 
 		if (getDolGlobalString('MAIN_PDF_DATE_TEXT')) {
 			$displaydate = "daytext";
@@ -1584,23 +1644,25 @@ class pdf_ortazur extends ModelePDFPropales
 
 		//$posy += 4;
 		$posy = $pdf->getY();
-		$pdf->SetXY($posx, $posy);
-		$pdf->SetTextColor(0, 0, 60);
+		$pdf->SetXY($posx - 3, $posy);
+		$pdf->SetTextColor(255, 255, 255);
+		$pdf->SetFont('', '', $default_font_size + 1);
 		$pdf->MultiCell(100, 3, $outputlangs->transnoentities("DatePropal")." : ".dol_print_date($object->date, $displaydate, false, $outputlangs, true), '', 'R');
 
 		$posy += 4;
-		$pdf->SetXY($posx, $posy);
-		$pdf->SetTextColor(0, 0, 60);
+		$pdf->SetXY($posx - 3, $posy + 1);
+		$pdf->SetTextColor(255, 255, 255);
+		$pdf->SetFont('', '', $default_font_size + 1);
 		$pdf->MultiCell(100, 3, $outputlangs->transnoentities("DateEndPropal")." : ".dol_print_date($object->fin_validite, $displaydate, false, $outputlangs, true), '', 'R');
 
 		if (!getDolGlobalString('MAIN_PDF_HIDE_CUSTOMER_CODE') && $object->thirdparty->code_client) {
 			$posy += 4;
-			$pdf->SetXY($posx, $posy);
-			$pdf->SetTextColor(0, 0, 60);
+			$pdf->SetXY($posx - 3, $posy + 10);
+			$pdf->SetTextColor(255, 255, 255);
 			$pdf->MultiCell(100, 3, $outputlangs->transnoentities("CustomerCode")." : ".$outputlangs->transnoentities($object->thirdparty->code_client), '', 'R');
 		}
 
-		// Get contact
+		// Get contact // Obtener contacto
 		if (getDolGlobalString('DOC_SHOW_FIRST_SALES_REP')) {
 			$arrayidcontact = $object->getIdContact('internal', 'SALESREPFOLL');
 			if (count($arrayidcontact) > 0) {
@@ -1616,7 +1678,7 @@ class pdf_ortazur extends ModelePDFPropales
 		$posy += 2;
 
 		$top_shift = 0;
-		// Show list of linked objects
+		// Show list of linked objects (margenes de emisor y remitente se pueden controlar desde este punto)
 		$current_y = $pdf->getY();
 		$posy = pdf_writeLinkedObjects($pdf, $object, $outputlangs, $posx, $posy, 100, 3, 'R', $default_font_size);
 		if ($current_y < $pdf->getY()) {
@@ -1652,27 +1714,29 @@ class pdf_ortazur extends ModelePDFPropales
 
 			// Show sender frame ***Coualtar etiqueta de Emisor***
 			if (!getDolGlobalString('MAIN_PDF_NO_SENDER_FRAME')) {
-				$pdf->SetTextColor(0, 0, 0);
-				$pdf->SetFont('', '', $default_font_size - 2);
-				$pdf->SetXY($posx, $posy - 5);
+				$pdf->SetTextColor(0, 113, 188); // Color ORT Computadores
+				$pdf->SetFont('', '', $default_font_size - 3);
+				$pdf->SetXY($posx + 3, $posy - 6);
 				$pdf->MultiCell(80, 5, $outputlangs->transnoentities("BillFrom"), 0, $ltrdirection);
 				$pdf->SetXY($posx, $posy);
-				$pdf->SetFillColor(230, 230, 230);
-				$pdf->MultiCell(82, $hautcadre, "", 0, 'R', 1);
+				$pdf->SetFillColor(0, 113, 188); // Color Logo ORT
+			    $pdf->MultiCell(82, $hautcadre, "", 0, 'R', 1); // oculta cuadro que rodea información de remitente
 				$pdf->SetTextColor(0, 0, 60);
 			}
 
 			// Show company name ***ORT Computadores S.A.S***
 			if (!getDolGlobalString('MAIN_PDF_HIDE_SENDER_NAME')) {
-				$pdf->SetXY($posx + 2, $posy + 3);
-				$pdf->SetFont('', 'B', $default_font_size);
+				$pdf->SetXY($posx + 3, $posy + 3);
+				$pdf->SetTextColor(255, 255, 255); // Color blanco
+				$pdf->SetFont('', 'B', $default_font_size + 2);
 				$pdf->MultiCell(80, 4, $outputlangs->convToOutputCharset($this->emetteur->name), 0, $ltrdirection);
 				$posy = $pdf->getY();
 			}
 
 			// Show sender information ***Oculta toda la información bajo nombre de ORT Computadores S.A.S***
-			$pdf->SetXY($posx + 2, $posy);
-			$pdf->SetFont('', '', $default_font_size - 1);
+			$pdf->SetXY($posx + 3, $posy);
+			$pdf->SetTextColor(255, 255, 255); // Color blanco
+			$pdf->SetFont('', '', $default_font_size + 1);
 			$pdf->MultiCell(80, 4, $carac_emetteur, 0, $ltrdirection);
 
 
@@ -1697,9 +1761,9 @@ class pdf_ortazur extends ModelePDFPropales
 			$carac_client = pdf_build_address($outputlangs, $this->emetteur, $object->thirdparty, ($usecontact ? $object->contact : ''), $usecontact, $mode, $object);
 
 			// Show recipient
-			$widthrecbox = 100;
+			$widthrecbox = 125;
 			if ($this->page_largeur < 210) {
-				$widthrecbox = 84; // To work with US executive format
+				$widthrecbox = 125; // To work with US executive format
 			}
 			$posy = 42 + $top_shift;
 			$posx = $this->page_largeur - $this->marge_droite - $widthrecbox;
@@ -1709,24 +1773,33 @@ class pdf_ortazur extends ModelePDFPropales
 
 			// Show recipient frame
 			if (!getDolGlobalString('MAIN_PDF_NO_RECIPENT_FRAME')) {
-				$pdf->SetTextColor(0, 0, 0);
+				$pdf->SetTextColor(0, 113, 188); // Color ORT Computadores
 				$pdf->SetFont('', '', $default_font_size - 2);
-				$pdf->SetXY($posx + 2, $posy - 5);
-				$pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("BillTo"), 0, $ltrdirection);
-				$pdf->Rect($posx, $posy, $widthrecbox, $hautcadre);
+			//	$pdf->SetXY($posx + 2, $posy - 2);
+			//	$pdf->MultiCell($widthrecbox, 5, $outputlangs->transnoentities("BillTo"), 0, $ltrdirection);
+			//	$pdf->Rect($posx, $posy, $widthrecbox, $hautcadre); // dibuja un resctangulo al rededor de la informacion del destinatario
+
+				$pdf->SetXY($posx + 2, $posy - 6);
+				$pdf->MultiCell(80, 5, $outputlangs->transnoentities("BillFrom"), 0, $ltrdirection);
+				$pdf->SetXY($posx - 6, $posy);
+				$pdf->SetFillColor(0, 113, 188); // Color ORT Computadores
+				$pdf->MultiCell(131, $hautcadre, "", 0, 'L', 1); // oculta cuadro que rodea información 
+				$pdf->SetTextColor(0, 0, 60);
 			}
 
 			// Show recipient name
-			$pdf->SetXY($posx + 2, $posy + 3);
-			$pdf->SetFont('', 'B', $default_font_size);
-			$pdf->MultiCell($widthrecbox, 4, $carac_client_name, 0, $ltrdirection);
+			$pdf->SetXY($posx - 3, $posy + 3);	
+			$pdf->SetTextColor(255, 255, 255); // Color blanco
+			$pdf->SetFont('', 'B', $default_font_size + 2);
+			$pdf->MultiCell($widthrecbox, 4, $carac_client_name, 0, 'R');
 
 			$posy = $pdf->getY();
 
 			// Show recipient information
-			$pdf->SetFont('', '', $default_font_size - 1);
-			$pdf->SetXY($posx + 2, $posy);
-			$pdf->MultiCell($widthrecbox, 4, $carac_client, 0, $ltrdirection);
+			$pdf->SetTextColor(255, 255, 255); // Color blanco
+			$pdf->SetFont('', '', $default_font_size + 1);
+			$pdf->SetXY($posx - 3, $posy);
+			$pdf->MultiCell($widthrecbox, 4, $carac_client, 0, 'R');
 		}
 
 		$pdf->SetTextColor(0, 0, 0);
