@@ -1196,9 +1196,9 @@ class pdf_ortazur extends ModelePDFPropales
 		$index = 0;
 
 		// Total HT
-		$pdf->SetFillColor(255, 255, 255);
+		$pdf->SetFillColor(51, 141, 201); // Color de fondo Total Base imp
 		$pdf->SetXY($col1x, $tab2_top);
-		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
+		$pdf->SetTextColor(255, 2550, 255); // Color de fuente blanco
 		$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("TotalHT"), 0, 'L', 1);
 
 		$total_ht = ((isModEnabled("multicurrency") && isset($object->multicurrency_tx) && $object->multicurrency_tx != 1) ? $object->multicurrency_total_ht : $object->total_ht);
@@ -1206,7 +1206,7 @@ class pdf_ortazur extends ModelePDFPropales
 		$pdf->MultiCell($largcol2, $tab2_hl, price($total_ht + (!empty($object->remise) ? $object->remise : 0), 0, $outputlangs), 0, 'R', 1);
 
 		// Show VAT by rates and total
-		$pdf->SetFillColor(248, 248, 248);
+		$pdf->SetFillColor(0, 85, 141); // Color de fondo IVA + Rete Fuente
 
 		$total_ttc = (isModEnabled("multicurrency") && $object->multicurrency_tx != 1) ? $object->multicurrency_total_ttc : $object->total_ttc;
 
@@ -1374,8 +1374,8 @@ class pdf_ortazur extends ModelePDFPropales
 				// Total TTC
 				$index++;
 				$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
-				$pdf->SetTextColor(0, 0, 60);
-				$pdf->SetFillColor(224, 224, 224);
+				$pdf->SetTextColor(255, 255, 255); // Color de fondo Total 
+				$pdf->SetFillColor(0, 57, 94); 
 				$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("TotalTTC"), $useborder, 'L', 1);
 
 				$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
