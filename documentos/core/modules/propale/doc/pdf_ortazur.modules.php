@@ -1081,20 +1081,76 @@ class pdf_ortazur extends ModelePDFPropales
 		//}
 
 		// Move to the bottom of the section
-		$posy += 25; // Adjust as needed to leave space between the previous content and the new text lines
+		$posy += 20; // Adjust as needed to leave space between the previous content and the new text lines
 
 		// Add the additional text lines
-		$pdf->SetFont('', '', 10);
+		$pdf->SetFont('', '', 8);
 		$pdf->SetXY($this->marge_gauche, $posy);
 		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
-		$pdf->MultiCell(0, 5, "* Cuenta de Ahorros BANCOLOMBIA No 118 – 250389 – 75 a nombre de ORT COMPUTADORES.\n* Descargar: RUT, certificación bancaria, cámara de comercio = https://docs.ortcomputadores.com.co/public.php ", 0, 'L');	
 
+		// Definir el texto completo
+		$texto_completo = "* Cuenta de Ahorros BANCOLOMBIA No 118–250389–75 a nombre de ORT COMPUTADORES S.A.S";
+
+		// Buscar el inicio del texto resaltado
+		$texto_resaltado = "118–250389–75";
+		$pos_resaltado = strpos($texto_completo, $texto_resaltado);
+		
+		$pdf->SetFont('', '', 8);
+		
+		// Imprimir la primera parte del texto (normal)
+		$texto_normal = substr($texto_completo, 0, $pos_resaltado);
+		$pdf->SetXY($this->marge_gauche, $posy);
+		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
+		$pdf->Write(5, $texto_normal);
+		
+		// Resaltar la parte especificada del texto (naranja)
+		$texto_resaltado = substr($texto_completo, $pos_resaltado, strlen($texto_resaltado));
+		$pdf->SetTextColor(2255, 87, 0); // Color de fuente naranja 
+		$pdf->Write(5, $texto_resaltado);
+		
+		// Imprimir la segunda parte del texto (normal)
+		$texto_final = substr($texto_completo, $pos_resaltado + strlen($texto_resaltado));
+		$pdf->SetTextColor(0, 0, 0); // Restaurar el color de fuente negro para el texto restante
+		$pdf->Write(5, $texto_final);
+
+		// Add the additional text lines
+		$pdf->SetFont('', '', 8);
+		$pdf->SetXY($this->marge_gauche, $posy);
+		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
+
+		// Move to the bottom of the section
+		$posy += 4; // Adjust as needed to leave space between the previous content and the new text lines
+
+		// Definir el texto completo
+		$texto_completo = "* Descargar: RUT, certificación bancaria, cámara de comercio = https://docs.ortcomputadores.com.co/public.php ";
+
+		// Buscar el inicio del texto resaltado
+		$texto_resaltado = "https://docs.ortcomputadores.com.co/public.php";
+		$pos_resaltado = strpos($texto_completo, $texto_resaltado);
+		
+		$pdf->SetFont('', '', 8);
+		
+		// Imprimir la primera parte del texto (normal)
+		$texto_normal = substr($texto_completo, 0, $pos_resaltado);
+		$pdf->SetXY($this->marge_gauche, $posy);
+		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
+		$pdf->Write(5, $texto_normal);
+		
+		// Resaltar la parte especificada del texto (Azul Logo)
+		$texto_resaltado = substr($texto_completo, $pos_resaltado, strlen($texto_resaltado));
+		$pdf->SetTextColor(0, 113, 188); // Color de fuente Azul Logo 
+		$pdf->Write(5, $texto_resaltado);
+		
+		// Imprimir la segunda parte del texto (normal)
+		$texto_final = substr($texto_completo, $pos_resaltado + strlen($texto_resaltado));
+		$pdf->SetTextColor(0, 0, 0); // Restaurar el color de fuente negro para el texto restante
+		$pdf->Write(5, $texto_final);
 
 		// Move to the bottom of the section
 		$posy += 10; // Adjust as needed to leave space between the previous content and the new text lines
 
 		// Add the additional text lines
-		$pdf->SetFont('', '', 10);
+		$pdf->SetFont('', '', 8);
 		$pdf->SetXY($this->marge_gauche, $posy);
 		$pdf->SetTextColor(0, 0, 0); // Color de fuente negro
 		$pdf->MultiCell(0, 5, "* La facturación se realiza en pesos COP. Los presupuestos realizados en USD se liquidan según TRM del día de facturación.\n* Artículos para cambio o devolución deben retornarse en su estado original, no abiertos respetar sellos en las cajas / empaques.", 0, 'L');	
@@ -1421,7 +1477,7 @@ class pdf_ortazur extends ModelePDFPropales
 
 		$pdf->SetDrawColor(255, 87, 0); // color naranja del borde de la tabla
 		$pdf->SetLineWidth(0.2); // Grosor de línea
-		$pdf->SetLineStyle(array('dash'=>'1,1'));
+		$pdf->SetLineStyle(array('dash'=>'1,1')); // Estilo de línea
 		$pdf->SetFont('', '', $default_font_size - 1);
 
 		// Output Rect // Salida recta 
